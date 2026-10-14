@@ -1,5 +1,7 @@
 package no.atlesh.werewolf.model;
 
+import java.util.List;
+
 public class Player {
   private String  name;
   private Role gameRole;
@@ -47,6 +49,12 @@ public class Player {
 
   public void setGameRole(Role gameRole) {
     this.gameRole = gameRole;
+  }
+
+  // Methods
+
+  public Player vote(List<Player> players) {
+    return players.getFirst(); // Until i know how to let the player pick from the list.
   }
 
 
