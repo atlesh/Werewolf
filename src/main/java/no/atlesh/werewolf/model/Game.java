@@ -1,11 +1,13 @@
 package no.atlesh.werewolf.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 
 public class Game {
   private final String gameCode;
@@ -70,24 +72,57 @@ public class Game {
 
   public void runWerewolves() {
     /*
-    * All the wervolves need to be able to vote on who to kill.
+    * All the werewolves need to be able to vote on who to kill.
     * If its a draw then they have to vote between the ones that they drew on.
     * If its a draw again, then they have to vote on the ones they haven't discussed.
     * If the same thing happens again then a random citizen gets killed.
     */
     List<Player> werewolves = players.stream()
-        .filter(p -> Objects.equals(p.getGameRole().getName(), "Werewolf"))
+        .filter(Player::getAlive)
+        .filter(p -> p.getGameRole() == Role.WEREWOLF)
         .toList();
     List<Player> notWerewolves = players.stream()
-        .filter(p -> !Objects.equals(p.getGameRole().getName(), "Werewolf"))
+        .filter(Player::getAlive)
+        .filter(p -> p.getGameRole() != Role.WEREWOLF)
         .toList();
 
-    boolean done = false;
-    while (!done) {
-      for (Player w : werewolves) {
-        w.vote(notWerewolves)
+    if (werewolves.isEmpty() || notWerewolves.isEmpty()) return;
+
+    List<Player> candidates = notWerewolves;
+    List<Player> discussed = new ArrayList<>();
+
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      List<Player> top = mostVoted(werewolves, candidates);
+      if (top.size() == 1) {
+        top.getFirst().setAlive(false);
+        return;
+      }
+      discussed.addAll(top);
+      if (attempt == 1) {
+        candidates = top;
+      } else {
+        candidates = notWerewolves.stream()
+            .filter(p -> !discussed.contains(p))
+            .toList();
+        if (candidates.isEmpty()) break;
       }
     }
+
+    Player victim = notWerewolves.get(new Random().nextInt(notWerewolves.size()));
+    victim.setAlive(false);
+  }
+
+  private List<Player> mostVoted(List<Player> voters, List<Player> candidates) {
+    Map<Player, Integer> votes = new HashMap<>();
+    for (Player voter : voters) {
+      Player target = voter.vote(candidates);
+      votes.merge(target, 1, Integer::sum);
+    }
+    int max = Collections.max(votes.values());
+    return votes.entrySet().stream()
+        .filter(e -> e.getValue() == max)
+        .map(Map.Entry::getKey)
+        .toList();
   }
 
   public void runSeer() {
@@ -102,11 +137,11 @@ public class Game {
 
   public void removeRole(Role role) {}
 
-  public List<Player> getWinners() {
+  /*public List<Player> getWinners() {
     return winners;
   }
 
   public List<Player> getLosers() {
     return losers;
-  }
+  }*/
 }
