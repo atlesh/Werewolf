@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 
 public class Game {
@@ -16,7 +15,8 @@ public class Game {
   private final List<Role> deck;
   private Phase phase;
   private final int round;
-  private Map<Player, Player> votes;
+  private List<Player> winners;
+  private List<Player> losers;
 
   public Game(String gameCode, Player admin, Phase phase, int round) {
     this.gameCode = gameCode;
@@ -26,7 +26,8 @@ public class Game {
     this.players = new ArrayList<>();
     this.players.add(admin);
     this.deck = new ArrayList<>();
-    this.votes = new HashMap<>();
+    this.winners = new ArrayList<>();
+    this.losers = new ArrayList<>();
   }
 
   public String getGameCode() {
@@ -53,15 +54,18 @@ public class Game {
     return round;
   }
 
-  public List<Player> orderNight() {
+  public List<Role> orderNight() {
     return players.stream()
-        .filter(p -> p.getGameRole().getNightOrder() != 0)
-        .sorted(Comparator.comparingInt(p -> p.getGameRole().getNightOrder()))
-        .toList();
+            .filter(Player::getAlive)
+            .map(Player::getGameRole)
+            .filter(r -> r.getNightOrder() != 0)
+            .distinct()
+            .sorted(Comparator.comparingInt(Role::getNightOrder))
+            .toList();
   }
 
-  private void voting(List<Player> voters, List<Player> voted) {
-    if (voters.isEmpty() || voted.isEmpty()) return;
+  private Player voting(List<Player> voters, List<Player> voted) {
+    if (voters.isEmpty() || voted.isEmpty()) return null;
 
     List<Player> candidates = voted;
     List<Player> discussed = new ArrayList<>();
@@ -70,7 +74,7 @@ public class Game {
       List<Player> top = mostVoted(voters, candidates);
       if (top.size() == 1) {
         top.getFirst().setAlive(false);
-        return;
+        return top.getFirst();
       }
       discussed.addAll(top);
       if (attempt == 1) {
@@ -85,6 +89,7 @@ public class Game {
 
     Player victim = voted.get(new Random().nextInt(voted.size()));
     victim.setAlive(false);
+    return victim;
   }
 
   private List<Player> mostVoted(List<Player> voters, List<Player> candidates) {
@@ -100,32 +105,25 @@ public class Game {
         .toList();
   }
 
-  public boolean checkEnded() {
+  public Side checkEnded() {
     List<Player> alive = players.stream().filter(Player::getAlive).toList();
 
     int good = 0;
     int bad = 0;
-    int depressed = 0;
     for  (Player p : alive) {
       if (p.getGameRole().getSide().equals(Side.BAD)) {
         bad++;
-      }
-      else if (p.getGameRole().getSide().equals(Side.GOOD)) {
+      } else {
         good++;
-      }
-      else {
-        depressed++;
       }
     }
 
-    if (depressed == 0) {
-      return true;
-    } else if (bad == good + depressed) {
-      return true;
-    } else if (bad == 0) {
-      return true;
+    if (bad == 0) {
+      return Side.GOOD;
+    } else if (bad >= good) {
+      return Side.BAD;
     } else {
-      return false;
+      return null;
     }
   }
 
@@ -150,17 +148,16 @@ public class Game {
   }
 
   public void runNight() {
-    for  (Player p : orderNight()) {
-      if(!p.getAlive()) continue;
-      switch (p.getGameRole()) {
+    for  (Role r : orderNight()) {
+      switch (r) {
         case WEREWOLF -> runWerewolves();
-        case SEER -> runSeer(p);
+        case SEER -> runSeer();
       }
     }
   }
 
   public void runDay() {
-    System.out.println("Dag");
+    System.out.println("Daytime!");
     phase = Phase.VOTING;
   }
 
@@ -169,9 +166,32 @@ public class Game {
         .filter(Player::getAlive)
         .toList();
 
-    voting(voters, voters);
+    Player victim = voting(voters, voters);
 
-    if (checkEnded()) {
+    assert victim != null;
+    if (victim.getGameRole().getSide().equals(Side.DEPRESSED)) {
+      winners = players.stream()
+          .filter(p -> !p.getGameRole().getSide().equals(Side.DEPRESSED))
+          .toList();
+      losers = players.stream()
+          .filter(p -> p.getGameRole().getSide().equals(Side.DEPRESSED))
+          .toList();
+      phase = Phase.ENDED;
+    } else if (checkEnded().equals(Side.GOOD)) {
+      winners = players.stream()
+          .filter(p -> !p.getGameRole().getSide().equals(Side.GOOD))
+          .toList();
+      losers = players.stream()
+          .filter(p -> p.getGameRole().getSide().equals(Side.BAD))
+          .toList();
+      phase = Phase.ENDED;
+    } else if (checkEnded().equals(Side.BAD)) {
+      winners = players.stream()
+          .filter(p -> !p.getGameRole().getSide().equals(Side.BAD))
+          .toList();
+      losers = players.stream()
+          .filter(p -> p.getGameRole().getSide().equals(Side.BAD))
+          .toList();
       phase = Phase.ENDED;
     } else {
       phase = Phase.NIGHT;
@@ -190,19 +210,33 @@ public class Game {
 
     voting(werewolves, notWerewolves);
 
-    if (checkEnded()) {
+    if (checkEnded().equals(Side.BAD)) {
+      winners = players.stream()
+          .filter(p -> !p.getGameRole().getSide().equals(Side.BAD))
+          .toList();
+      losers = players.stream()
+          .filter(p -> p.getGameRole().getSide().equals(Side.BAD))
+          .toList();
       phase = Phase.ENDED;
     } else {
       phase = Phase.DAY;
     }
   }
 
-  public void runSeer(Player player) {
+  public void runSeer() {
+    Player seer = null;
+    for  (Player p : players) {
+      if (p.getGameRole() == Role.SEER) {
+        seer = p;
+      }
+    }
+
     List<Player> candidates = players.stream()
         .filter(Player::getAlive)
         .toList();
 
-    System.out.println(player.vote(candidates).getGameRole().getName());
+    assert seer != null;
+    System.out.println(seer.vote(candidates).getGameRole().getName());
   }
 
   public void addPlayer(Player player) {
