@@ -157,6 +157,13 @@ public class Game {
     }
   }
 
+  public void startGame() {
+    if (phase != Phase.LOBBY) {
+      throw  new IllegalStateException("Game has already started.");
+    }
+    runGame();
+  }
+
   public void endGame(Side winSide) {
     winners = players.stream()
         .filter(p -> p.getGameRole().getSide() == winSide)
@@ -169,9 +176,10 @@ public class Game {
 
   private void runLobby() {
     // A player needs to be able to join the lobby with the right code
-    // The admin needs to be able to remove a Player og Players can leave lobby
+    // The admin needs to be able to remove a Player & Players can leave lobby
     // The admin needs to be able to pick roles for the deck and remove them
     // Click start and runGame()
+    phase = Phase.LOBBY;
   }
 
   private void runGame() {
