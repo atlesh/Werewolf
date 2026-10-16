@@ -1,11 +1,12 @@
 package no.atlesh.werewolf.model;
 
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
   private String  name;
   private Role gameRole;
-  private Boolean alive;
+  private boolean alive;
   private String browserID;
 
   public Player(String name, String browserID) {
@@ -29,7 +30,7 @@ public class Player {
     return gameRole;
   }
 
-  public Boolean getAlive() {
+  public boolean getAlive() {
     return alive;
   }
 
@@ -43,7 +44,7 @@ public class Player {
     this.browserID = browserID;
   }
 
-  public void setAlive(Boolean alive) {
+  public void setAlive(boolean alive) {
     this.alive = alive;
   }
 
@@ -54,9 +55,14 @@ public class Player {
   // Methods
 
   public Player vote(List<Player> players) {
-    return players.getFirst(); // Until i know how to let the player pick from the list.
+    Player vote = players.getFirst();
+    if (Objects.equals(vote.getName(), name)) {
+      vote = players.get(1);
+    }
+    // Until I know how to let the player pick from the list.
+    return vote;
   }
 
 
-  // Trenger en metode for å oppdatere +1 i timesPerRole i players user.
+  // Needs a method to update +1 timesPerRole in players user.
 }
