@@ -174,14 +174,6 @@ public class Game {
     phase = Phase.ENDED;
   }
 
-  private void runLobby() {
-    // A player needs to be able to join the lobby with the right code
-    // The admin needs to be able to remove a Player & Players can leave lobby
-    // The admin needs to be able to pick roles for the deck and remove them
-    // Click start and runGame()
-    phase = Phase.LOBBY;
-  }
-
   private void runGame() {
     dealRoles();
     phase = Phase.NIGHT;
@@ -272,19 +264,41 @@ public class Game {
   }
 
   public void addPlayer(Player player) {
-    players.add(player);
+    if (phase == Phase.LOBBY && !players.contains(player)) players.add(player);
   }
 
-  public void removePlayer(Player player) {
-    players.remove(player);
+  public void removePlayer(Player player1, Player player2) {
+    if (player1 != admin)
+      throw new IllegalArgumentException("Only admin can remove players.");
+
+    if (player2.equals(admin))
+      throw new IllegalArgumentException("Admin cannot remove themself from game.");
+
+    if (phase == Phase.LOBBY) {
+      players.remove(player2);
+    } else throw new IllegalArgumentException("Not in Lobby");
   }
 
-  public void addRole(Role role) {
-    deck.add(role);
+  public void addRole(Player player, Role role) {
+    if (player != admin) throw new IllegalArgumentException("Only admin can add roles.");
+
+    if (phase == Phase.LOBBY) {
+      deck.add(role);
+    } else throw new IllegalArgumentException("Not in Lobby");
   }
 
-  public void removeRole(Role role) {
-    deck.remove(role);
+  public void removeRole(Player player, Role role) {
+    if (player != admin) throw new IllegalArgumentException("Only admin can remove roles.");
+
+    if (phase == Phase.LOBBY) {
+      boolean removed = false;
+      for (Role r : deck) {
+        if (r.equals(role) && !removed) {
+          deck.remove(r);
+          removed = true;
+        }
+      }
+    } else throw new IllegalArgumentException("Not in Lobby");
   }
 
 }
