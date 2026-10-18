@@ -30,7 +30,7 @@ public class Player {
     return gameRole;
   }
 
-  public Boolean getAlive() {
+  public boolean getAlive() {
     return alive;
   }
 
@@ -54,15 +54,19 @@ public class Player {
         throw new IllegalArgumentException("gameCode already exists");
     }
 
-    Game game = new Game("test", this);
+    Game game = new Game(gameCode, this);
     games.add(game);
     return game;
   }
 
   public void joinGame(List<Game> games, String gameCode) {
     for (Game game : games) {
-      if(game.getGameCode().equals(gameCode)) game.addPlayer(this);
+      if(game.getGameCode().equals(gameCode)) {
+        game.addPlayer(this);
+        return;
+      }
     }
+    throw new IllegalArgumentException("No game with code " +  gameCode);
   }
 
   public void removePlayerGame(Player player, Game game) {
@@ -81,9 +85,5 @@ public class Player {
     if (game == null) throw new IllegalArgumentException("Game cannot be null");
 
     game.removeRole(this, role);
-  }
-
-  public Player vote(List<Player> players) {
-
   }
 }
