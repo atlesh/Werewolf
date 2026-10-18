@@ -20,7 +20,6 @@ public class Game {
   private Vote currentVote;
   private Pick currentPick;
   private final Random random;
-  private Role seen;
 
   public Game(String gameCode, Player admin) {
     this.gameCode = gameCode;
@@ -44,12 +43,8 @@ public class Game {
     return admin;
   }
 
-  public List<Player> getPlayers() {
-    return List.copyOf(players);
-  }
-
-  public List<Role> getDeck() {
-    return List.copyOf(deck);
+  public Random getRandom() {
+    return random;
   }
 
   public Phase getPhase() {
@@ -60,6 +55,18 @@ public class Game {
     return round;
   }
 
+  public List<Player> getPlayers() {
+    return List.copyOf(players);
+  }
+
+  public List<Role> getDeck() {
+    return List.copyOf(deck);
+  }
+
+  public List<Role> getNightQueue() {
+    return List.copyOf(nightQueue);
+  }
+
   public List<Player> getWinners() {
     return List.copyOf(winners);
   }
@@ -68,10 +75,20 @@ public class Game {
     return List.copyOf(losers);
   }
 
-  public Role getSeen(Player asker) {
-    if (asker.getGameRole() != Role.SEER)
-      throw new IllegalArgumentException("Only seer can see this.");
-    return seen;
+  public Vote getCurrentVote() {
+    return currentVote;
+  }
+
+  public Pick getCurrentPick() {
+    return currentPick;
+  }
+
+  public void setCurrentVote(Vote currentVote) {
+    this.currentVote = currentVote;
+  }
+
+  public void setCurrentPick(Pick currentPick) {
+    this.currentPick = currentPick;
   }
 
   private List<Role> orderNight() {
@@ -84,36 +101,23 @@ public class Game {
             .toList();
   }
 
-  private List<Player> alivePlayers() {
+  public List<Player> alivePlayers() {
     if (players.isEmpty()) throw new IllegalStateException("Game has no players");
     return players.stream().filter(Player::getAlive).toList();
   }
 
   public void submitVote(Player voter, Player target) {
+    if (phase != Phase.VOTING) throw new IllegalStateException("Not voting.");
     if (currentVote == null) throw new IllegalStateException("No vote right now.");
 
     Player victim = currentVote.submit(voter, target);
     if (victim == null) return;
 
     currentVote = null;
+
     victim.setAlive(false);
-    if (phase == Phase.VOTING) afterDayKill(victim);
-    else afterWerewolfKill();
-  }
 
-  public void submitPick(Player picker, Player target) {
-    if  (currentPick == null) throw new IllegalStateException("No pick right now.");
-
-    Player chosen = currentPick.submit(picker, target);
-
-    currentPick = null;
-
-    // Using switch so I can add more roles later.
-    switch (picker.getGameRole()) {
-      case Role.SEER -> seen = chosen.getGameRole();
-    }
-
-    runNight();
+    afterDayKill(victim);
   }
 
   private void afterDayKill(Player victim) {
@@ -128,13 +132,7 @@ public class Game {
     }
   }
 
-  private void afterWerewolfKill() {
-    Side winSide = checkEnded();
-    if (winSide != null) endGame(winSide);
-    else runNight();
-  }
-
-  private Side checkEnded() {
+  public Side checkEnded() {
     List<Player> alive = players.stream().filter(Player::getAlive).toList();
 
     int good = 0;
@@ -170,7 +168,7 @@ public class Game {
       } else good++;
     }
 
-    if (bad == 0 || good == 0 || good - bad < 4)
+    if (bad == 0 || good == 0 || good - bad < 3)
       throw new IllegalStateException("Deck rules not followed.");
 
 
@@ -179,6 +177,11 @@ public class Game {
     for (int i = 0; i  < roles.size(); i++) {
       players.get(i).setGameRole(roles.get(i));
     }
+  }
+
+  public Role submitNightAction(Player actor, Player target) {
+    if (phase != Phase.NIGHT) throw new IllegalStateException("Not night.");
+    return nightQueue.get(nightStep - 1).getNightAction().resolve(this, actor, target);
   }
 
   public void addPlayer(Player player) {
@@ -223,7 +226,7 @@ public class Game {
     startNight();
   }
 
-  private void endGame(Side winSide) {
+  public void endGame(Side winSide) {
     winners = players.stream()
         .filter(p -> p.getGameRole().getSide() == winSide)
         .toList();
@@ -235,13 +238,12 @@ public class Game {
 
   private void startNight() {
     phase = Phase.NIGHT;
-    seen = null;
     nightQueue = orderNight();
     nightStep = 0;
     runNight();
   }
 
-  private void runNight() {
+  public void runNight() {
     if (phase == Phase.ENDED) return;
     if (nightStep >= nightQueue.size()) {
       phase = Phase.VOTING;
@@ -249,44 +251,10 @@ public class Game {
       return;
     }
     Role nightRole = nightQueue.get(nightStep++);
-    switch(nightRole) {
-      case WEREWOLF -> runWerewolves();
-      case SEER -> runSeer();
-    }
+    nightRole.getNightAction().start(this);
   }
 
   private void runVote() {
     currentVote = new Vote(alivePlayers(), alivePlayers(), random);
-  }
-
-  private void runWerewolves() {
-    List<Player> werewolves = alivePlayers().stream()
-        .filter(p -> p.getGameRole() == Role.WEREWOLF)
-        .toList();
-    List<Player> notWerewolves = alivePlayers().stream()
-        .filter(p -> p.getGameRole() != Role.WEREWOLF)
-        .toList();
-
-    currentVote = new Vote(werewolves, notWerewolves, random);
-  }
-
-  private void runSeer() {
-    Player seer = null;
-    for (Player player : alivePlayers()) {
-      if (player.getGameRole() == Role.SEER) {
-        seer = player;
-      }
-    }
-
-    if (seer == null) {
-      runNight();
-      return;
-    }
-
-    List<Player> candidates = alivePlayers().stream()
-        .filter(p -> p.getGameRole() != Role.SEER)
-        .toList();
-
-    currentPick = new Pick(seer, candidates);
   }
 }
