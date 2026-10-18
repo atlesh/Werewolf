@@ -68,7 +68,9 @@ public class Game {
     return List.copyOf(losers);
   }
 
-  public Role getSeen() {
+  public Role getSeen(Player asker) {
+    if (asker.getGameRole() != Role.SEER)
+      throw new IllegalArgumentException("Only seer can see this.");
     return seen;
   }
 
