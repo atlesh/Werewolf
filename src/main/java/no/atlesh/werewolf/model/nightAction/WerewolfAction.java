@@ -6,6 +6,7 @@ import no.atlesh.werewolf.model.Player;
 import no.atlesh.werewolf.model.Role;
 import no.atlesh.werewolf.model.Side;
 import no.atlesh.werewolf.model.Vote;
+import no.atlesh.werewolf.model.nightAction.witch.WitchPotion;
 
 public class WerewolfAction implements NightAction {
   @Override
@@ -21,7 +22,7 @@ public class WerewolfAction implements NightAction {
   }
 
   @Override
-  public Role resolve(Game game, Player actor, Player target) {
+  public Role resolve(Game game, Player actor, Player target, WitchPotion potion) {
     if (game.getCurrentVote() == null) throw new IllegalStateException("No vote right now.");
 
     Player victim = game.getCurrentVote().submit(actor, target);
@@ -30,10 +31,9 @@ public class WerewolfAction implements NightAction {
     game.setCurrentVote(null);
 
     victim.setAlive(false);
+    game.setNightVictim(victim);
 
-    Side winSide = game.checkEnded();
-    if (winSide != null) game.endGame(winSide);
-    else game.runNight();
+    game.runNight();
 
     return null;
   }

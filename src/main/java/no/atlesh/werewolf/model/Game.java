@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
+import no.atlesh.werewolf.model.nightAction.witch.WitchPotion;
 
 public class Game {
   private final String gameCode;
@@ -19,7 +20,10 @@ public class Game {
   private List<Player> losers;
   private Vote currentVote;
   private Pick currentPick;
+  private Player nightVictim;
   private final Random random;
+  private boolean witchKillUsed;
+  private boolean witchSaveUsed;
 
   public Game(String gameCode, Player admin) {
     this.gameCode = gameCode;
@@ -33,6 +37,8 @@ public class Game {
     this.nightQueue = new ArrayList<>();
     this.winners = new ArrayList<>();
     this.losers = new ArrayList<>();
+    this.witchKillUsed = false;
+    this.witchSaveUsed = false;
   }
 
   public String getGameCode() {
@@ -75,6 +81,18 @@ public class Game {
     return List.copyOf(losers);
   }
 
+  public Player getNightVictim() {
+    return nightVictim;
+  }
+
+  public boolean isWitchKillUsed() {
+    return witchKillUsed;
+  }
+
+  public boolean isWitchSaveUsed() {
+    return witchSaveUsed;
+  }
+
   public Vote getCurrentVote() {
     return currentVote;
   }
@@ -89,6 +107,18 @@ public class Game {
 
   public void setCurrentPick(Pick currentPick) {
     this.currentPick = currentPick;
+  }
+
+  public void setNightVictim(Player nightVictim) {
+    this.nightVictim = nightVictim;
+  }
+
+  public void useWitchKill() {
+    this.witchKillUsed = true;
+  }
+
+  public void useWitchSave() {
+    this.witchSaveUsed = true;
   }
 
   private List<Role> orderNight() {
@@ -179,9 +209,11 @@ public class Game {
     }
   }
 
-  public Role submitNightAction(Player actor, Player target) {
+  public Role submitNightAction(Player actor, Player target, WitchPotion witchPotion) {
     if (phase != Phase.NIGHT) throw new IllegalStateException("Not night.");
-    return nightQueue.get(nightStep - 1).getNightAction().resolve(this, actor, target);
+
+    return nightQueue.get(nightStep - 1)
+        .getNightAction().resolve(this, actor, target, witchPotion);
   }
 
   public void addPlayer(Player player) {
@@ -240,12 +272,18 @@ public class Game {
     phase = Phase.NIGHT;
     nightQueue = orderNight();
     nightStep = 0;
+    nightVictim = null;
     runNight();
   }
 
   public void runNight() {
     if (phase == Phase.ENDED) return;
     if (nightStep >= nightQueue.size()) {
+      Side winSide = checkEnded();
+      if (winSide != null) {
+        endGame(winSide);
+        return;
+      }
       phase = Phase.VOTING;
       runVote();
       return;

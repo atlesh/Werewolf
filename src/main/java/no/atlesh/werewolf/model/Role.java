@@ -3,7 +3,7 @@ package no.atlesh.werewolf.model;
 import no.atlesh.werewolf.model.nightAction.NightAction;
 import no.atlesh.werewolf.model.nightAction.SeerAction;
 import no.atlesh.werewolf.model.nightAction.WerewolfAction;
-import no.atlesh.werewolf.model.nightAction.WitchAction;
+import no.atlesh.werewolf.model.nightAction.witch.WitchAction;
 
 public enum Role {
   VILLAGER("Villager", 0, Side.GOOD, null),

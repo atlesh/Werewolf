@@ -5,6 +5,7 @@ import no.atlesh.werewolf.model.Game;
 import no.atlesh.werewolf.model.Pick;
 import no.atlesh.werewolf.model.Player;
 import no.atlesh.werewolf.model.Role;
+import no.atlesh.werewolf.model.nightAction.witch.WitchPotion;
 
 public class SeerAction implements NightAction {
   @Override
@@ -29,7 +30,7 @@ public class SeerAction implements NightAction {
   }
 
   @Override
-  public Role resolve(Game game, Player actor, Player target) {
+  public Role resolve(Game game, Player actor, Player target,  WitchPotion potion) {
     if  (game.getCurrentPick() == null) throw new IllegalStateException("No pick right now.");
 
     Player chosen = game.getCurrentPick().submit(actor, target);
