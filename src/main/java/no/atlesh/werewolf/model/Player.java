@@ -2,6 +2,8 @@ package no.atlesh.werewolf.model;
 
 import java.util.List;
 import java.util.Objects;
+import no.atlesh.werewolf.model.game.Game;
+import no.atlesh.werewolf.model.role.Role;
 
 public class Player {
   private final String  name;

@@ -3,9 +3,9 @@ package no.atlesh.werewolf;
 import io.javalin.Javalin;
 import java.util.ArrayList;
 import java.util.List;
-import no.atlesh.werewolf.model.Game;
+import no.atlesh.werewolf.model.game.Game;
 import no.atlesh.werewolf.model.Player;
-import no.atlesh.werewolf.model.Role;
+import no.atlesh.werewolf.model.role.Role;
 
 public class Main {
   public static void main(String[] args) {

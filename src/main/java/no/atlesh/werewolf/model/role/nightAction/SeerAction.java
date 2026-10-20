@@ -1,11 +1,11 @@
-package no.atlesh.werewolf.model.nightAction;
+package no.atlesh.werewolf.model.role.nightAction;
 
 import java.util.List;
-import no.atlesh.werewolf.model.Game;
-import no.atlesh.werewolf.model.Pick;
+import no.atlesh.werewolf.model.game.Game;
+import no.atlesh.werewolf.model.choice.Pick;
 import no.atlesh.werewolf.model.Player;
-import no.atlesh.werewolf.model.Role;
-import no.atlesh.werewolf.model.nightAction.witch.WitchPotion;
+import no.atlesh.werewolf.model.role.Role;
+import no.atlesh.werewolf.model.role.nightAction.witch.WitchPotion;
 
 public class SeerAction implements NightAction {
   @Override

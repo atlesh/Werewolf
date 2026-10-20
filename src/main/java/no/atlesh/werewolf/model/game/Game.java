@@ -1,11 +1,16 @@
-package no.atlesh.werewolf.model;
+package no.atlesh.werewolf.model.game;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
-import no.atlesh.werewolf.model.nightAction.witch.WitchPotion;
+import no.atlesh.werewolf.model.choice.Pick;
+import no.atlesh.werewolf.model.Player;
+import no.atlesh.werewolf.model.choice.Vote;
+import no.atlesh.werewolf.model.role.nightAction.witch.WitchPotion;
+import no.atlesh.werewolf.model.role.Role;
+import no.atlesh.werewolf.model.role.Side;
 
 public class Game {
   private final String gameCode;
@@ -151,12 +156,21 @@ public class Game {
   }
 
   private void afterDayKill(Player victim) {
-    Side winSide = checkEnded();
     if (victim.getGameRole().getSide() == Side.DEPRESSED) {
       endGame(Side.DEPRESSED);
-    } else if (winSide != null) {
-      endGame(winSide);
-    } else {
+      return;
+    }
+    if (victim.getGameRole() == Role.HUNTER) {
+      victim.getGameRole().getDayAction().start(this, victim);
+      return;
+    }
+    finishDay();
+  }
+
+  public void finishDay() {
+    Side winSide = checkEnded();
+    if (winSide != null) endGame(winSide);
+    else {
       round++;
       startNight();
     }
@@ -214,6 +228,13 @@ public class Game {
 
     return nightQueue.get(nightStep - 1)
         .getNightAction().resolve(this, actor, target, witchPotion);
+  }
+
+  public void submitDayAction(Player actor, Player target) {
+    if (phase != Phase.VOTING) throw new IllegalStateException("Not voting.");
+    if (currentPick == null) throw new IllegalStateException("No day action right now.");
+
+    currentPick.picker().getGameRole().getDayAction().resolve(this, actor, target);
   }
 
   public void addPlayer(Player player) {

@@ -1,4 +1,4 @@
-package no.atlesh.werewolf.model;
+package no.atlesh.werewolf.model.choice;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import no.atlesh.werewolf.model.Player;
 
 public class Vote {
   private final List<Player> voters;

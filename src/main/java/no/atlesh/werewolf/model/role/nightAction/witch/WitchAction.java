@@ -1,12 +1,12 @@
-package no.atlesh.werewolf.model.nightAction.witch;
+package no.atlesh.werewolf.model.role.nightAction.witch;
 
 import java.util.ArrayList;
 import java.util.List;
-import no.atlesh.werewolf.model.Game;
-import no.atlesh.werewolf.model.Pick;
+import no.atlesh.werewolf.model.game.Game;
+import no.atlesh.werewolf.model.choice.Pick;
 import no.atlesh.werewolf.model.Player;
-import no.atlesh.werewolf.model.Role;
-import no.atlesh.werewolf.model.nightAction.NightAction;
+import no.atlesh.werewolf.model.role.Role;
+import no.atlesh.werewolf.model.role.nightAction.NightAction;
 
 public class WitchAction implements NightAction {
 
