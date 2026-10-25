@@ -48,29 +48,6 @@ public class Player {
 
   // Methods
 
-  public Game createGame(List<Game> games, String gameCode) {
-    if (gameCode == null) throw new IllegalArgumentException("gameCode cannot be null");
-
-    for (Game game : games) {
-      if (Objects.equals(game.getGameCode(), gameCode))
-        throw new IllegalArgumentException("gameCode already exists");
-    }
-
-    Game game = new Game(gameCode, this);
-    games.add(game);
-    return game;
-  }
-
-  public void joinGame(List<Game> games, String gameCode) {
-    for (Game game : games) {
-      if(game.getGameCode().equals(gameCode)) {
-        game.addPlayer(this);
-        return;
-      }
-    }
-    throw new IllegalArgumentException("No game with code " +  gameCode);
-  }
-
   public void removePlayerGame(Player player, Game game) {
     if (game == null) throw new IllegalArgumentException("Game cannot be null");
 

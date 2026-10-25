@@ -92,7 +92,7 @@ class GameLobbyTest {
   void cannotStartWithFewerThanFivePlayers() {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER);
 
-    assertThrows(IllegalStateException.class, game::startGame);
+    assertThrows(IllegalStateException.class, () -> game.startGame(game.getAdmin()));
     assertEquals(Phase.LOBBY, game.getPhase());
   }
 
@@ -101,21 +101,21 @@ class GameLobbyTest {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
     game.addRole(game.getAdmin(), VILLAGER);
 
-    assertThrows(IllegalStateException.class, game::startGame);
+    assertThrows(IllegalStateException.class, () -> game.startGame(game.getAdmin()));
   }
 
   @Test
   void cannotStartWithoutWerewolf() {
     Game game = newGame(VILLAGER, VILLAGER, VILLAGER, VILLAGER, SEER);
 
-    assertThrows(IllegalStateException.class, game::startGame);
+    assertThrows(IllegalStateException.class, () -> game.startGame(game.getAdmin()));
   }
 
   @Test
   void cannotStartWithTooManyWerewolves() {
     Game game = newGame(WEREWOLF, WEREWOLF, VILLAGER, VILLAGER, SEER);
 
-    assertThrows(IllegalStateException.class, game::startGame);
+    assertThrows(IllegalStateException.class, () -> game.startGame(game.getAdmin()));
   }
 
   @Test
@@ -123,7 +123,7 @@ class GameLobbyTest {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
     List<Role> deckBefore = game.getDeck();
 
-    game.startGame();
+    game.startGame(game.getAdmin());
 
     List<Role> dealt = new ArrayList<>();
     for (Player p : game.getPlayers()) {
@@ -138,17 +138,36 @@ class GameLobbyTest {
   }
 
   @Test
+  void onlyAdminCanStart() {
+    Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
+    Player other = game.getPlayers().get(1);
+
+    assertThrows(IllegalArgumentException.class, () -> game.startGame(other));
+    assertEquals(Phase.LOBBY, game.getPhase());
+  }
+
+  @Test
+  void findPlayerUsesToken() {
+    Game game = newGame(VILLAGER, VILLAGER);
+    Player other = game.getPlayers().get(1);
+
+    assertEquals(other, game.findPlayer(other.getBrowserID()));
+    assertThrows(IllegalArgumentException.class, () -> game.findPlayer("wrong"));
+    assertThrows(IllegalArgumentException.class, () -> game.findPlayer(null));
+  }
+
+  @Test
   void startTwiceThrows() {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
-    game.startGame();
+    game.startGame(game.getAdmin());
 
-    assertThrows(IllegalStateException.class, game::startGame);
+    assertThrows(IllegalStateException.class, () -> game.startGame(game.getAdmin()));
   }
 
   @Test
   void lobbyIsClosedAfterStart() {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
-    game.startGame();
+    game.startGame(game.getAdmin());
     Player admin = game.getAdmin();
     Player other = game.getPlayers().get(1);
 
@@ -162,7 +181,7 @@ class GameLobbyTest {
   void startGoesToNight() {
     Game game = newGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, SEER);
 
-    game.startGame();
+    game.startGame(game.getAdmin());
 
     assertEquals(Phase.NIGHT, game.getPhase());
     assertEquals(1, game.getRound());

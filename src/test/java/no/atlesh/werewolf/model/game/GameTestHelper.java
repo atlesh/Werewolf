@@ -23,7 +23,7 @@ final class GameTestHelper {
 
   static Game startedGame(Role... roles) {
     Game game = newGame(roles);
-    game.startGame();
+    game.startGame(game.getAdmin());
     return game;
   }
 

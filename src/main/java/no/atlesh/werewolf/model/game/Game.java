@@ -118,6 +118,13 @@ public class Game {
     this.nightVictim = nightVictim;
   }
 
+  public Player findPlayer(String token) {
+    return players.stream()
+        .filter(p -> p.getBrowserID().equals(token))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Unknown player."));
+  }
+
   public void useWitchKill() {
     this.witchKillUsed = true;
   }
@@ -273,7 +280,8 @@ public class Game {
     } else throw new IllegalStateException("Not in Lobby");
   }
 
-  public void startGame() {
+  public void startGame(Player player) {
+    if (player != admin) throw new IllegalArgumentException("Only admin can start game.");
     if (phase != Phase.LOBBY) throw  new IllegalStateException("Game has already started.");
     dealRoles();
     startNight();

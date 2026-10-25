@@ -1,41 +1,44 @@
 package no.atlesh.werewolf;
 
 import io.javalin.Javalin;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import no.atlesh.werewolf.model.game.Game;
 import no.atlesh.werewolf.model.Player;
-import no.atlesh.werewolf.model.role.Role;
+import no.atlesh.werewolf.service.GameRegistry;
 
 public class Main {
+
   public static void main(String[] args) {
-    Javalin app = Javalin.create().start(7070);
-    app.get("/", ctx -> ctx.result("Werewolf"));
-    List<Game> games = new ArrayList<>();
+    GameRegistry registry = new GameRegistry();
+    Javalin app = Javalin.create().start(8080);
+    app.exception(IllegalArgumentException.class,
+        (e, ctx) -> ctx.status(400).result(e.getMessage()));
+    app.exception(IllegalStateException.class,
+        (e, ctx) -> ctx.status(400).result(e.getMessage()));
 
-    Player admin = new Player("Atle", "888");
+    app.post("/games", ctx -> {
+      String token = UUID.randomUUID().toString();
+      String name = ctx.formParam("name");
+      if (name == null) throw new IllegalArgumentException("No name given");
+      Player admin = new Player(name, token);
+      Game game = registry.createGame(admin);
+      ctx.json(Map.of("code", game.getGameCode(), "token", token));
+    });
 
-    Player player1 = new Player("Bob", "801");
-    Player player2 = new Player("Jack", "802");
-    Player player3 = new Player("Daniel", "803");
-    Player player4 = new Player("Danielson", "804");
-
-    Game game = admin.createGame(games, "test");
-
-    player1.joinGame(games, "test");
-    player2.joinGame(games, "test");
-    player3.joinGame(games, "test");
-    player4.joinGame(games, "test");
-
-    game.addRole(admin, Role.WEREWOLF);
-    game.addRole(admin, Role.TANNER);
-    game.addRole(admin, Role.VILLAGER);
-    game.addRole(admin, Role.VILLAGER);
-    game.addRole(admin, Role.SEER);
+    app.post("/games/{code}/join", ctx -> {
+      Game game = registry.findGame(ctx.pathParam("code"));
+      String token = UUID.randomUUID().toString();
+      String name = ctx.formParam("name");
+      if (name == null) throw new IllegalArgumentException("No name given");
+      game.addPlayer(new Player(name, token));
+      ctx.json(Map.of("token", token));
+    });
 
     app.post("/games/{code}/start", ctx -> {
-      game.startGame();
-      ctx.status(200);
+      Game game = registry.findGame(ctx.pathParam("code"));
+      Player player = game.findPlayer(ctx.header("token"));
+      game.startGame(player);
     });
   }
 }
