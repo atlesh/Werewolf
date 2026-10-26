@@ -1,7 +1,5 @@
 package no.atlesh.werewolf.model;
 
-import java.util.List;
-import java.util.Objects;
 import no.atlesh.werewolf.model.game.Game;
 import no.atlesh.werewolf.model.role.Role;
 
@@ -9,11 +7,13 @@ public class Player {
   private final String  name;
   private Role gameRole;
   private boolean alive;
-  private final String browserID;
+  private final String token;
+  private final String id;
 
-  public Player(String name, String browserID) {
+  public Player(String name, String id, String token) {
     this.name = name;
-    this.browserID = browserID;
+    this.id = id;
+    this.token = token;
     this.alive = true;
     this.gameRole = null;
   }
@@ -24,8 +24,12 @@ public class Player {
     return name;
   }
 
-  public String getBrowserID() {
-    return browserID;
+  public String getId() {
+    return id;
+  }
+
+  public String getToken() {
+    return token;
   }
 
   public Role getGameRole() {

@@ -8,9 +8,9 @@ import no.atlesh.werewolf.model.Player;
 import org.junit.jupiter.api.Test;
 
 class PickTest {
-  private final Player picker = new Player("Picker", "p");
-  private final Player target = new Player("Target", "t");
-  private final Player other = new Player("Other", "o");
+  private final Player picker = new Player("Picker", "p", "p");
+  private final Player target = new Player("Target", "t", "t");
+  private final Player other = new Player("Other", "o", "o");
 
   @Test
   void returnsTheChosenTarget() {

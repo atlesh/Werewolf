@@ -19,7 +19,7 @@ class GameLobbyTest {
 
   @Test
   void newGameStartsInLobbyWithAdmin() {
-    Player admin = new Player("Admin", "a");
+    Player admin = new Player("Admin", "a", "a");
     Game game = new Game("CODE", admin);
 
     assertEquals(Phase.LOBBY, game.getPhase());
@@ -28,8 +28,8 @@ class GameLobbyTest {
 
   @Test
   void addingSamePlayerTwiceThrows() {
-    Player admin = new Player("Admin", "a");
-    Player bob = new Player("Bob", "b");
+    Player admin = new Player("Admin", "a", "a");
+    Player bob = new Player("Bob", "b", "b");
     Game game = new Game("CODE", admin);
     game.addPlayer(bob);
 
@@ -38,8 +38,8 @@ class GameLobbyTest {
 
   @Test
   void onlyAdminCanChangeDeck() {
-    Player admin = new Player("Admin", "a");
-    Player bob = new Player("Bob", "b");
+    Player admin = new Player("Admin", "a", "a");
+    Player bob = new Player("Bob", "b", "b");
     Game game = new Game("CODE", admin);
     game.addPlayer(bob);
 
@@ -58,7 +58,7 @@ class GameLobbyTest {
 
   @Test
   void adminCannotBeRemoved() {
-    Player admin = new Player("Admin", "a");
+    Player admin = new Player("Admin", "a", "a");
     Game game = new Game("CODE", admin);
 
     assertThrows(IllegalArgumentException.class, () -> game.removePlayer(admin, admin));
@@ -66,9 +66,9 @@ class GameLobbyTest {
 
   @Test
   void onlyAdminCanRemovePlayers() {
-    Player admin = new Player("Admin", "a");
-    Player bob = new Player("Bob", "b");
-    Player eve = new Player("Eve", "e");
+    Player admin = new Player("Admin", "a", "a");
+    Player bob = new Player("Bob", "b", "b");
+    Player eve = new Player("Eve", "e", "e");
     Game game = new Game("CODE", admin);
     game.addPlayer(bob);
     game.addPlayer(eve);
@@ -84,7 +84,7 @@ class GameLobbyTest {
     Game game = newGame(VILLAGER);
 
     assertThrows(UnsupportedOperationException.class,
-        () -> game.getPlayers().add(new Player("Cheater", "c")));
+        () -> game.getPlayers().add(new Player("Cheater", "c", "c")));
     assertThrows(UnsupportedOperationException.class, () -> game.getDeck().clear());
   }
 
@@ -151,7 +151,7 @@ class GameLobbyTest {
     Game game = newGame(VILLAGER, VILLAGER);
     Player other = game.getPlayers().get(1);
 
-    assertEquals(other, game.findPlayer(other.getBrowserID()));
+    assertEquals(other, game.findPlayer(other.getToken()));
     assertThrows(IllegalArgumentException.class, () -> game.findPlayer("wrong"));
     assertThrows(IllegalArgumentException.class, () -> game.findPlayer(null));
   }
@@ -171,7 +171,7 @@ class GameLobbyTest {
     Player admin = game.getAdmin();
     Player other = game.getPlayers().get(1);
 
-    assertThrows(IllegalStateException.class, () -> game.addPlayer(new Player("Late", "l")));
+    assertThrows(IllegalStateException.class, () -> game.addPlayer(new Player("Late", "l", "l")));
     assertThrows(IllegalStateException.class, () -> game.removePlayer(admin, other));
     assertThrows(IllegalStateException.class, () -> game.addRole(admin, VILLAGER));
     assertThrows(IllegalStateException.class, () -> game.removeRole(admin, VILLAGER));

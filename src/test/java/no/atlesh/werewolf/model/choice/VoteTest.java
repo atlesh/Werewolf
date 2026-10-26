@@ -20,10 +20,10 @@ class VoteTest {
 
   @BeforeEach
   void setUp() {
-    a = new Player("A", "a");
-    b = new Player("B", "b");
-    c = new Player("C", "c");
-    d = new Player("D", "d");
+    a = new Player("A", "a", "a");
+    b = new Player("B", "b", "b");
+    c = new Player("C", "c", "c");
+    d = new Player("D", "d", "d");
     all = List.of(a, b, c, d);
   }
 

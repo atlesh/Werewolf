@@ -10,10 +10,10 @@ final class GameTestHelper {
 
   /** Creates a game in the lobby with one player per role. The first player is the admin. */
   static Game newGame(Role... roles) {
-    Player admin = new Player("P0", "id0");
+    Player admin = new Player("P0", "id0", "id0");
     Game game = new Game("TEST", admin);
     for (int i = 1; i < roles.length; i++) {
-      game.addPlayer(new Player("P" + i, "id" + i));
+      game.addPlayer(new Player("P" + i, "id" + i, "id" + i));
     }
     for (Role role : roles) {
       game.addRole(admin, role);

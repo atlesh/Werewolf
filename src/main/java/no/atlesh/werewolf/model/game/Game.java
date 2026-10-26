@@ -120,7 +120,14 @@ public class Game {
 
   public Player findPlayer(String token) {
     return players.stream()
-        .filter(p -> p.getBrowserID().equals(token))
+        .filter(p -> p.getToken().equals(token))
+        .findFirst()
+        .orElseThrow(() -> new IllegalArgumentException("Unknown player."));
+  }
+
+  public Player findPlayerByID(String id) {
+    return players.stream()
+        .filter(p -> p.getId().equals(id))
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unknown player."));
   }
