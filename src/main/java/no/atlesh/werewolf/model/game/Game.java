@@ -29,6 +29,7 @@ public class Game {
   private final Random random;
   private boolean witchKillUsed;
   private boolean witchSaveUsed;
+  private final List<Player> seen = new ArrayList<>();
 
   public Game(String gameCode, Player admin) {
     this.gameCode = gameCode;
@@ -106,6 +107,10 @@ public class Game {
     return currentPick;
   }
 
+  public List<Player> getSeen() {
+    return List.copyOf(seen);
+  }
+
   public void setCurrentVote(Vote currentVote) {
     this.currentVote = currentVote;
   }
@@ -130,6 +135,10 @@ public class Game {
         .filter(p -> p.getId().equals(id))
         .findFirst()
         .orElseThrow(() -> new IllegalArgumentException("Unknown player."));
+  }
+
+  public void addSeen(Player p) {
+    seen.add(p);
   }
 
   public void useWitchKill() {

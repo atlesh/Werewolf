@@ -24,7 +24,13 @@ public class SeerAction implements NightAction {
 
     List<Player> candidates = game.alivePlayers().stream()
         .filter(p -> p.getGameRole() != Role.SEER)
+        .filter(player -> !(game.getSeen().contains(player)))
         .toList();
+
+    if (candidates.isEmpty()) {
+      game.runNight();
+      return;
+    }
 
     game.setCurrentPick(new Pick(seer, candidates));
   }
@@ -34,6 +40,8 @@ public class SeerAction implements NightAction {
     if  (game.getCurrentPick() == null) throw new IllegalStateException("No pick right now.");
 
     Player chosen = game.getCurrentPick().submit(actor, target);
+
+    game.addSeen(chosen);
 
     game.setCurrentPick(null);
 

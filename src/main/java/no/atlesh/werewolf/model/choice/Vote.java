@@ -58,6 +58,10 @@ public class Vote {
     return null;
   }
 
+  public List<Player> getVoters() {
+    return List.copyOf(voters);
+  }
+
   public List<Player> getCandidates() {
     return candidates;
   }

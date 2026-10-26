@@ -118,10 +118,25 @@ class GameFlowTest {
     everyoneVotes(game, villagers.get(1));
 
     game.submitNightAction(wolf, villagers.get(2), null);
-    game.submitNightAction(seer, wolf, null);
 
-    assertEquals(Phase.ENDED, game.getPhase());
+    assertEquals(Phase.ENDED, game.getPhase(), "seer has no one left to check, so night ends");
     assertEquals(List.of(wolf), game.getWinners());
+  }
+
+  @Test
+  void seerCannotCheckTheSamePlayerTwice() {
+    Game game = startedGame(WEREWOLF, VILLAGER, VILLAGER, VILLAGER, VILLAGER, VILLAGER, SEER);
+    Player wolf = withRole(game, WEREWOLF);
+    Player seer = withRole(game, SEER);
+    List<Player> villagers = allWithRole(game, VILLAGER);
+
+    game.submitNightAction(wolf, villagers.get(0), null);
+    game.submitNightAction(seer, wolf, null);
+    everyoneVotes(game, villagers.get(1));
+    game.submitNightAction(wolf, villagers.get(2), null);
+
+    assertFalse(game.getCurrentPick().pool().contains(wolf));
+    assertThrows(IllegalArgumentException.class, () -> game.submitNightAction(seer, wolf, null));
   }
 
   @Test

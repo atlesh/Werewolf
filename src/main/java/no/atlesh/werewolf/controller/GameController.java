@@ -4,6 +4,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Context;
 import java.util.Map;
 import java.util.UUID;
+import no.atlesh.werewolf.dto.GameState;
 import no.atlesh.werewolf.model.Player;
 import no.atlesh.werewolf.model.game.Game;
 import no.atlesh.werewolf.model.role.Role;
@@ -49,6 +50,11 @@ public class GameController {
     app.post("/games/{code}/roles/remove", ctx -> {
       Game game = game(ctx);
       game.removeRole(me(ctx, game), role(ctx));
+    });
+
+    app.get("/games/{code}/state", ctx -> {
+      Game game = game(ctx);
+      ctx.json(GameState.of(game, me(ctx, game)));
     });
   }
 
