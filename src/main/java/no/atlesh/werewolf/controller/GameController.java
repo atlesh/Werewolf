@@ -8,6 +8,7 @@ import no.atlesh.werewolf.dto.GameState;
 import no.atlesh.werewolf.model.Player;
 import no.atlesh.werewolf.model.game.Game;
 import no.atlesh.werewolf.model.role.Role;
+import no.atlesh.werewolf.model.role.nightAction.witch.WitchPotion;
 import no.atlesh.werewolf.service.GameRegistry;
 
 public class GameController {
@@ -34,7 +35,7 @@ public class GameController {
 
     app.post("/games/{code}/kick", ctx -> {
       Game game = game(ctx);
-      game.removePlayer(me(ctx, game), game.findPlayerByID(ctx.formParam("id")));
+      game.removePlayer(me(ctx, game), target(ctx, game));
     });
 
     app.post("/games/{code}/start", ctx -> {
@@ -52,9 +53,34 @@ public class GameController {
       game.removeRole(me(ctx, game), role(ctx));
     });
 
+    app.post("/games/{code}/vote", ctx -> {
+      Game game = game(ctx);
+      game.submitVote(me(ctx, game), target(ctx, game));
+    });
+
+    app.post("/games/{code}/night-action", ctx -> {
+      Game game = game(ctx);
+      String id = ctx.formParam("id");
+      Player target = id == null ? null : game.findPlayerByID(id);
+      WitchPotion witchPotion = null;
+      String potion = ctx.formParam("potion");
+      if (potion != null) {
+        witchPotion = WitchPotion.valueOf(potion.toUpperCase());
+      }
+      game.submitNightAction(
+          me(ctx, game), target, witchPotion);
+    });
+
+    app.post("/games/{code}/day-action", ctx -> {
+      Game game = game(ctx);
+      game.submitDayAction(me(ctx, game), target(ctx, game));
+    });
+
     app.get("/games/{code}/state", ctx -> {
       Game game = game(ctx);
-      ctx.json(GameState.of(game, me(ctx, game)));
+      synchronized (game) {
+        ctx.json(GameState.of(game, me(ctx, game)));
+      }
     });
   }
 
@@ -64,6 +90,10 @@ public class GameController {
 
   private Player me(Context ctx, Game game) {
     return game.findPlayer(ctx.header("token"));
+  }
+
+  private Player target(Context ctx, Game game) {
+    return game.findPlayerByID(ctx.formParam("id"));
   }
 
   private String name(Context ctx) {

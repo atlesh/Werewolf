@@ -164,7 +164,7 @@ public class Game {
     return players.stream().filter(Player::getAlive).toList();
   }
 
-  public void submitVote(Player voter, Player target) {
+  public synchronized void submitVote(Player voter, Player target) {
     if (phase != Phase.VOTING) throw new IllegalStateException("Not voting.");
     if (currentVote == null) throw new IllegalStateException("No vote right now.");
 
@@ -246,21 +246,21 @@ public class Game {
     }
   }
 
-  public Role submitNightAction(Player actor, Player target, WitchPotion witchPotion) {
+  public synchronized Role submitNightAction(Player actor, Player target, WitchPotion witchPotion) {
     if (phase != Phase.NIGHT) throw new IllegalStateException("Not night.");
 
     return nightQueue.get(nightStep - 1)
         .getNightAction().resolve(this, actor, target, witchPotion);
   }
 
-  public void submitDayAction(Player actor, Player target) {
+  public synchronized void submitDayAction(Player actor, Player target) {
     if (phase != Phase.VOTING) throw new IllegalStateException("Not voting.");
     if (currentPick == null) throw new IllegalStateException("No day action right now.");
 
     currentPick.picker().getGameRole().getDayAction().resolve(this, actor, target);
   }
 
-  public void addPlayer(Player player) {
+  public synchronized void addPlayer(Player player) {
     if (phase == Phase.LOBBY) {
       if (!players.contains(player))
         players.add(player);
@@ -268,7 +268,7 @@ public class Game {
     } else throw new IllegalStateException("Not in lobby.");
   }
 
-  public void removePlayer(Player player1, Player player2) {
+  public synchronized void removePlayer(Player player1, Player player2) {
     if (player1 != admin)
       throw new IllegalArgumentException("Only admin can remove players.");
 
@@ -280,7 +280,7 @@ public class Game {
     } else throw new IllegalStateException("Not in Lobby");
   }
 
-  public void addRole(Player player, Role role) {
+  public synchronized void addRole(Player player, Role role) {
     if (player != admin) throw new IllegalArgumentException("Only admin can add roles.");
 
     if (phase == Phase.LOBBY) {
@@ -288,7 +288,7 @@ public class Game {
     } else throw new IllegalStateException("Not in Lobby");
   }
 
-  public void removeRole(Player player, Role role) {
+  public synchronized void removeRole(Player player, Role role) {
     if (player != admin) throw new IllegalArgumentException("Only admin can remove roles.");
 
     if (phase == Phase.LOBBY) {
@@ -296,7 +296,7 @@ public class Game {
     } else throw new IllegalStateException("Not in Lobby");
   }
 
-  public void startGame(Player player) {
+  public synchronized void startGame(Player player) {
     if (player != admin) throw new IllegalArgumentException("Only admin can start game.");
     if (phase != Phase.LOBBY) throw  new IllegalStateException("Game has already started.");
     dealRoles();
